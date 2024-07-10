@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
 
 public class Include extends SymbolType implements Rule, Translation {
   private static final String[] setUpSymbols = {"COLLAPSE_SETUP"};
@@ -18,6 +20,8 @@ public class Include extends SymbolType implements Rule, Translation {
   public static final String TEARDOWN_ARG = "-teardown";
   public static final String COLLAPSE_ARG = "-c";
   public static final String SEAMLESS_ARG = "-seamless";
+  
+  private static Set<String> includedPages = new HashSet<>();
 
   public Include() {
     super("Include");
@@ -38,6 +42,13 @@ public class Include extends SymbolType implements Rule, Translation {
     if (includedPageName.length() == 0) return Symbol.nothing;
 
     SourcePage sourcePage = parser.getPage().getNamedPage();
+    
+    if (includedPages.contains(includedPageName)) {
+        current.add("").add(new Symbol(SymbolType.Style, "error").add("Error: Recursive include detected for page: " + includedPageName));
+        return new Maybe<>(current);
+      }
+
+    includedPages.add(includedPageName);
 
     // Record the page name anyway, since we might want to show an error if it's invalid
     if (PathParser.isWikiPath(includedPageName)) {
@@ -64,6 +75,8 @@ public class Include extends SymbolType implements Rule, Translation {
         .parse());
       if (option.equals(SETUP_ARG)) current.copyVariables(setUpSymbols, parser.getVariableSource());
     }
+    
+    includedPages.remove(includedPageName);
 
     // Remove trailing newline so we do not introduce excessive whitespace in the page.
     if (parser.peek().isType(SymbolType.Newline)) {
