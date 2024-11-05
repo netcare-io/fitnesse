@@ -1,0 +1,173 @@
+table {
+    width: auto;
+    border-collapse: collapse;
+    table-layout: auto;
+  }
+  th, td {
+    padding: 2px 5px;
+    text-align: left;
+    border: 1px solid #ddd;
+    white-space: nowrap;
+  }
+  tr:nth-child(even) {
+    background-color: #e6e6e6;
+  }
+
+/* Common styles for all affected cells */
+td {
+  position: relative;
+  z-index: 1;
+}
+
+/* Add background opacity to cells in "Last 5 Results" in every other odd row */
+tr:nth-child(odd) td:nth-child(n+4):nth-child(-n+25)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: inherit;
+  opacity: 0.7;
+  z-index: -1;
+}
+
+/* Add brightness filter to cells in "Last 5 Results" in every other even row */
+tr:nth-child(even) td:nth-child(n+4):nth-child(-n+25)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: inherit;
+  filter: brightness(85%);
+  z-index: -1;
+}
+
+/* Add background opacity to cells in "Pass/Fail" in every other odd row */
+tr:nth-child(odd) td:nth-child(n):nth-child(-n+2)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: inherit;
+  opacity: 0.7;
+  z-index: -1;
+}
+
+/* Add brightness filter to cells in "Pass/Fail" in every other even row */
+tr:nth-child(even) td:nth-child(n):nth-child(-n+2)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: inherit;
+  filter: brightness(85%);
+  z-index: -1;
+}
+
+.info-icon {
+    cursor: pointer;
+    display: inline-block;
+    border-radius: 50%;
+    background-color: #ccc;
+    color: #fff;
+    width: 16px;
+    height: 16px;
+    text-align: center;
+    line-height: 16px;
+    font-size: 12px;
+    font-weight: bold;
+    position: relative;
+}
+
+/* Tooltip styles */
+.info-icon:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 125%;
+    background-color: #333;
+    color: #fff;
+    padding: 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+    font-size: 12px;
+    z-index: 100;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+.info-icon:hover::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 115%;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+    z-index: 100;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+/* Tooltip hidden by default */
+.info-icon::after,
+.info-icon::before {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+h2 {
+    font-size: 16px; /* Slightly smaller title */
+    margin: 0px;
+  }
+  
+  label {
+    margin-right: 0px;
+    font-size: 14px; /* Adjust label font */
+    margin-bottom: 0px !important;
+  }
+  
+  .info-icon {
+    cursor: pointer;
+    display: inline-block;
+    border-radius: 50%;
+    background-color: #ccc;
+    color: #fff;
+    width: 16px;
+    height: 16px;
+    text-align: center;
+    line-height: 16px;
+    font-size: 12px;
+    font-weight: bold;
+    position: relative;
+  }
+
+  .info-icon:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 125%;
+    background-color: #333;
+    color: #fff;
+    padding: 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 100;
+    opacity: 1;
+  }
+
+  .info-icon::after,
+  .info-icon::before {
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
