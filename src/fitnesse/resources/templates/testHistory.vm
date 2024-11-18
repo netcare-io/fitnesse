@@ -1,33 +1,120 @@
+<link rel=stylesheet href="files/fitnesse/css/fitnesse_history.css">
+
+<script type="text/javascript">
+
+  let selectedCount = 20;
+
+  window.onload = function() {
+    updateResults(selectedCount);
+  };
+
+  function updatePath() {
+    shortPath = document.getElementById('testPath').value || ".RegressionTests";
+    console.log("New path set: ", shortPath); // Check if this is called
+    updateResults(selectedCount); // Call updateResults to refresh with new path
+  }
+  
+  function updateResults(count) {
+    selectedCount = count
+    // Update the column header for results
+    document.getElementById('resultHeader').innerText = 'Last ' + count + ' Results';
+
+    // Get all table rows and update only the result cells
+    const rows = document.querySelectorAll('tr[data-result-row]');
+    
+    rows.forEach(row => {
+      const resultCells = row.querySelectorAll('td[data-result]');
+      
+      // Adjust visibility of result cells based on the selected count
+      resultCells.forEach((cell, index) => {
+        if (index < count) {
+          cell.style.display = ''; // Show the cell
+        } else {
+          cell.style.display = 'none'; // Hide the cell
+        }
+      });
+    });
+
+  // Update the colspan of the result header to match the count
+  document.getElementById('resultHeader').setAttribute('colspan', count);
+
+  updateShortPageNames();
+}
+
+  function extractShortPageName(page) {
+    if (page.includes(shortPath)) {
+      let shortPageName = page.substring(page.indexOf(shortPath) + shortPath.length);
+      return shortPageName.trim() ? shortPageName : shortPath;
+    } else {
+      return page;
+    }
+  }
+
+  // Update page names after updating the path
+  function updateShortPageNames() {
+    const pageLinks = document.querySelectorAll('td .test-link');
+    
+    pageLinks.forEach(link => {
+      const pageName = link.getAttribute('href').split('?')[0];
+      link.innerText = extractShortPageName(pageName);
+    });
+  }
+</script>
+
 <h1>Test history</h1>
 #set($noHistory = true)
 <div>
- <a class="button" href="?responder=overview">View as Overview</a>
- <a class="button" href="$viewLocation">Cancel</a>
- <label for="hidePassedTests"><input type="checkbox" id="hidePassedTests"/>Hide passed tests</label>
+  <a class="button" href="?responder=overview">View as Overview</a>
+  <a class="button" href="$viewLocation">Cancel</a>
+  <label for="hidePassedTests"><input type="checkbox" id="hidePassedTests"/>Hide passed tests</label>
 </div>
 <div>
- #if(!$purgeOptions.isEmpty())
+  #if(!$purgeOptions.isEmpty())
   #foreach($purgeOption in $purgeOptions)
-   <a class="button" href="?responder=purgeHistory&days=$purgeOption" onclick="purgeConfirmation(event)">Purge#if ($purgeOption == 0) all#else &gt; $purgeOption days#end</a>
+  <a class="button" href="?responder=purgeHistory&days=$purgeOption" onclick="purgeConfirmation(event)">Purge#if ($purgeOption == 0) all#else &gt; $purgeOption days#end</a>
   #end
   <label for="purgeGlobal"><input type="checkbox" id="purgeGlobal" />Purge global</label>
- #end
+  #end
+</div>
+
+<div>
+  <label for="testPath">Short path to:</label>
+  <input type="text" id="testPath" placeholder=".RegressionTests" />
+  <button onclick="updatePath()">Set Path</button>
+</div>
+
+<div style="display: flex; align-items: center; margin-top: 10px; margin-bottom: 10px;">
+  <h2>Select how many results to display:</h2>
+  <label><input type="radio" name="resultCount" value="3" onclick="updateResults(3)"> 3</label>
+  <label><input type="radio" name="resultCount" value="5" onclick="updateResults(5)"> 5</label>
+  <label><input type="radio" name="resultCount" value="10" onclick="updateResults(10)"> 10</label>
+  <label><input type="radio" name="resultCount" value="20" onclick="updateResults(20)" checked> 20</label>
 </div>
 
 <table>
  <tr>
-  <th>Page</th>
-  <th>Pass</th>
-  <th>Fail</th>
-  <th>Latest</th>
-  <th colspan="20">Last 20 Results</th>
+    <th>
+      Pass <span class="info-icon" data-tooltip="Number of tests that passed">?</span>
+    </th>
+    <th>
+      Fail <span class="info-icon" data-tooltip="Number of tests that failed">?</span>
+    </th>
+    <th>
+      Latest <span class="info-icon" data-tooltip="Latest test run time">?</span>
+    </th>
+    <th id="resultHeader" colspan="20">
+      Last 20 Results <span class="info-icon" data-tooltip="Pass/Fail results of the last 20 tests">?</span>
+    </th>
+    <th>
+      Page <span class="info-icon" data-tooltip="Test page name">?</span>
+    </th>
  </tr>
   #foreach ($page in $testHistory.pageNames)
   #set ($pageHistory = $testHistory.getPageHistory($page))
   #if($pageHistory)
   #set($noHistory = false)
 
-  <tr>
+  <tr data-result-row>
     #set ($barGraph = $pageHistory.getBarGraph())
 
     #if($pageHistory.passes==0) #set ($passClass = "ignore")
@@ -38,13 +125,36 @@
     #else #set ($failClass = "fail")
     #end
 
-    <td><a href="${contextRoot}$page?pageHistory">$page</a></td>
     <td class="$passClass">$pageHistory.passes</td>
     <td class="$failClass">$pageHistory.failures</td>
     <td>$barGraph.formatEndingDate("dd MMM yy, HH:mm")</td>
+
+    #set($resultCount = 0)
     #foreach($passFail in $barGraph.passFailArray())
-    <td class="$passFail.result"><a href="$page?pageHistory&resultDate=$passFail.Date">#if($passFail.pass)+#else-#end</a></td>
+    <td class="$passFail.result" data-result><a href="$page?pageHistory&resultDate=$passFail.Date" title="$passFail.Date">#if($passFail.pass)+#else-#end</a></td>
+    #set($resultCount = $resultCount + 1)
     #end
+
+
+    #if($resultCount < 20)
+      #set($emptyCells = 20 - $resultCount)
+      #foreach($i in [1..$emptyCells])
+      <td data-result></td>
+      #end
+    #end
+
+
+
+    #if($page.contains(".RegressionTests"))
+    #set($shortPageName = $page.substring($page.indexOf(".RegressionTests") + 19)) ## Extract everything after ".RegressionTests"
+    
+    #if($shortPageName.trim().isEmpty()) 
+        #set($shortPageName = ".RegressionTests") ## If nothing comes after, just show ".RegressionTests"
+    #end
+    #else
+        #set($shortPageName = $page)
+    #end
+    <td><a class="test-link" href="${contextRoot}$page?pageHistory">$shortPageName</a></td>
 
   </tr>
   #end
