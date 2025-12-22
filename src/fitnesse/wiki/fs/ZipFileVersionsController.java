@@ -7,6 +7,8 @@ import fitnesse.wiki.WikiImportProperty;
 import util.FileUtil;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,6 +26,7 @@ public class ZipFileVersionsController implements VersionsController {
 
   private static final Pattern ZIP_FILE_PATTERN = Pattern.compile("(\\S+)?\\d+(~\\d+)?\\.zip");
   public static final String ZIP_EXTENSION = ".zip";
+  private static final int CREATION_LEEWAY_MILLIS = 100;
 
   private final int daysTillVersionsExpire;
 
@@ -117,11 +120,19 @@ public class ZipFileVersionsController implements VersionsController {
   public VersionInfo makeVersion(final FileVersion... fileVersions) throws IOException {
     File commonBaseDir = commonBaseDir(fileVersions);
     String versionName = makeVersionName(commonBaseDir, fileVersions[0]);
-    final File zipFile = new File(commonBaseDir, versionName + ZIP_EXTENSION);
 
-    makeZipVersion(zipFile, fileVersions);
-    pruneVersions(history(toFiles(fileVersions)));
     persistence.makeVersion(fileVersions);
+    // If the creation time is the same or close to the last modification time, then the
+    // page probably just got created. In this case we do not need a version.
+    BasicFileAttributes attr = Files.readAttributes(fileVersions[0].getFile().toPath(), BasicFileAttributes.class);
+    long creationTime = attr.creationTime().toMillis();
+    long lastModifiedTime = attr.lastModifiedTime().toMillis();
+    if (Math.abs(creationTime - lastModifiedTime) > CREATION_LEEWAY_MILLIS) {
+      final File zipFile = new File(commonBaseDir, versionName + ZIP_EXTENSION);
+      makeZipVersion(zipFile, fileVersions);
+    }
+    pruneVersions(history(toFiles(fileVersions)));
+
     return new VersionInfo(versionName, fileVersions[0].getAuthor(), fileVersions[0].getLastModificationTime());
   }
 
