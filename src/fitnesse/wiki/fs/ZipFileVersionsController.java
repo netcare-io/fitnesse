@@ -121,17 +121,19 @@ public class ZipFileVersionsController implements VersionsController {
     File commonBaseDir = commonBaseDir(fileVersions);
     String versionName = makeVersionName(commonBaseDir, fileVersions[0]);
 
-    persistence.makeVersion(fileVersions);
-    // If the creation time is the same or close to the last modification time, then the
+    // If the creation time is the same or close to the current time, then the
     // page probably just got created. In this case we do not need a version.
-    BasicFileAttributes attr = Files.readAttributes(fileVersions[0].getFile().toPath(), BasicFileAttributes.class);
-    long creationTime = attr.creationTime().toMillis();
-    long lastModifiedTime = attr.lastModifiedTime().toMillis();
-    if (Math.abs(creationTime - lastModifiedTime) > CREATION_LEEWAY_MILLIS) {
-      final File zipFile = new File(commonBaseDir, versionName + ZIP_EXTENSION);
-      makeZipVersion(zipFile, fileVersions);
+    if (fileVersions[0].getFile().exists()) {
+      BasicFileAttributes attr = Files.readAttributes(fileVersions[0].getFile().toPath(), BasicFileAttributes.class);
+      long creationTime = attr.creationTime().toMillis();
+      long currentTime = new Date().toInstant().toEpochMilli();
+      if (Math.abs(creationTime - currentTime) > CREATION_LEEWAY_MILLIS) {
+        final File zipFile = new File(commonBaseDir, versionName + ZIP_EXTENSION);
+        makeZipVersion(zipFile, fileVersions);
+      }
     }
     pruneVersions(history(toFiles(fileVersions)));
+    persistence.makeVersion(fileVersions);
 
     return new VersionInfo(versionName, fileVersions[0].getAuthor(), fileVersions[0].getLastModificationTime());
   }

@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import fitnesse.testutil.FitNesseUtil;
 import fitnesse.wiki.NoSuchVersionException;
@@ -46,6 +47,8 @@ public class FileSystemPageZipFileVersioningTest {
 
     PageData data = page.getData();
     firstVersion = VersionInfo.makeVersionInfo(data);
+    // Having to wait before the version will be created
+    TimeUnit.MILLISECONDS.sleep(200);
     secondVersion = page.commit(data);
   }
 
@@ -155,6 +158,8 @@ public class FileSystemPageZipFileVersioningTest {
     WikiPage page = WikiPageUtil.addPage(root, path, "old content");
     PageData data = page.getData();
     data.setContent("new content");
+    // Having to wait before the version will be created
+    TimeUnit.MILLISECONDS.sleep(200);
     VersionInfo previousVersion = page.commit(data);
 
     Collection<VersionInfo> versions = page.getVersions();
@@ -194,6 +199,8 @@ public class FileSystemPageZipFileVersioningTest {
     WikiPage page = WikiPageUtil.addPage(root, PathParser.parse("SomePage"), "\uba80\uba81\uba82\uba83");
     PageData data = page.getData();
     data.setContent("blah");
+    // Having to wait before the version will be created
+    TimeUnit.MILLISECONDS.sleep(200);
     VersionInfo info = page.commit(data);
 
     data = page.getVersion(info.getName()).getData();
@@ -212,7 +219,8 @@ public class FileSystemPageZipFileVersioningTest {
     props.set("MyProp", "my value");
     data.setProperties(props);
     page.commit(data);
-
+    // Having to wait before the version will be created
+    TimeUnit.MILLISECONDS.sleep(200);
     data.setProperties(oldProps);
     VersionInfo version = page.commit(data);
 
