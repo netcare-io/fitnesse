@@ -258,6 +258,13 @@ public class ZipFileVersionsController implements VersionsController {
       }
     }
   }
+  
+  public void deleteVersions(List<VersionInfo> deletionList) {
+    // When the list is filled everything in it will be deleted
+    for (VersionInfo version : deletionList) {
+      ((ZipFileVersionInfo) version).getFile().delete();
+    }
+  }
 
   private List<VersionInfo> makeSortedVersionList(Collection<VersionInfo> versions) {
     List<VersionInfo> versionsList = new ArrayList<>(versions);
