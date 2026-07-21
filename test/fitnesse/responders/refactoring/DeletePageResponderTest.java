@@ -137,7 +137,7 @@ public class DeletePageResponderTest extends ResponderTestCase {
       MockRequest request = new MockRequest();
       request.setResource("PageToDelete");
       request.addInput("confirmed", "yes");
-      // deleteVersions is not set → Versions should be kept
+      // deleteVersions is not set so Versions should be kept
       new DeletePageResponder().makeResponse(fileSystemContext, request);
 
       // Verify that the version still exists after deletion
